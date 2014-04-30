@@ -1,0 +1,4 @@
+wahadlo
+=======
+
+Odwrocone wahadlo RL
