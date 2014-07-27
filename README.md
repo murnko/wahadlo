@@ -1,4 +1,4 @@
 wahadlo
 =======
 
-Odwrocone wahadlo RL
+Zrobione, działające dla pionu
