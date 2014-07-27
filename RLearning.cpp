@@ -25,13 +25,12 @@ float x, oldp, q1, q2, q3, z, y;
 
 float random(void) {
 	
-	q1 = rand();
-	q2 = 2^31 - 1;
-	q3 = q1/q2;
+	q1 = rand() ;
+	q2 = ((float) ((1 << 31)));
+	q3 = q1/q2 -1;
 	//printf("%f \n", q3);
 	return(
-		//(float) rand()/((float) ((1 << 31) - 1))
-		q3
+			q3
 		) ;
 };
 
@@ -42,8 +41,8 @@ float push(float s) {
 	q1 = s;
 	q2 = 1 + exp(s);
 	q3 = (1/(1 + exp(s)));
-	//printf("%f \n", q1);
-	return s; //uprościć może?
+	//printf("%f \n", q3);
+	return s; //uprościć może całość?
 		
 
 		
@@ -86,32 +85,25 @@ int stateMatrix::readState (dReal &x, dReal &v, dReal &ang, dReal &ang_div)
 {
 
 {
-  int state=0;
+  state=0;
   steps++;
-  
+  //printf("%d \n",steps);
   
   //porażka
-	if (
-		x < -porazka_x || x > porazka_x 
-		||ang < -porazka_ang || ang > porazka_ang
-		) 
+	
+  
+  if (x < -porazka_x || x > porazka_x ||ang < -porazka_ang || ang > porazka_ang) 
 	{
-	  fails++; 
-	  steps = 0; 
-
-	  for (int i = 0; i <state_count; i ++)
-	  {
-		 // printf("%d =  %f \n",i,  w[i]);
-
-	  }
+		fails++; 
+		steps = 0; 
 	  
-	  return(-1);  
+		return(-1);  
 	
 	}
-
+  
 
 	//limit prób lub kroków
-	if (fails_max > 1000 || steps_max > 10000) return(-2);
+	if (fails > 1000 || steps_max > 10000) return(-2);
 
   if (x < -lim_x1)  		       state = 0;
   else if (x < 0.8)     	       state = 1;
@@ -131,8 +123,7 @@ int stateMatrix::readState (dReal &x, dReal &v, dReal &ang, dReal &ang_div)
   if (ang_div < -lim_ang_div) 	;
   else if (ang_div < lim_ang_div)  state += 54;
   else                                 state += 108;
-
- // printf("%d ",state);
+  
   return(state);
 }
 	
@@ -156,14 +147,11 @@ void stateMatrix::initState(void){
 //algorytm decyzyjny
 
 int stateMatrix::teachState(int status){
-	z = push(w[status]);
-	y = random();
-	if (y < z )  move = 1;
+	
 
 	
 
 	e[status] += (1 - lambdaw)*(move - 0.5) ;
-	printf("%f \n", e[status]);
 
 	//xbar[status] += (1 - lambdav);
 
@@ -175,7 +163,7 @@ int stateMatrix::teachState(int status){
 		fail = 1;   //ustawia flagę porażki
 		fails++;	//zlicza porażkę
 		steps = 0;	//reset kroków	
-	//	r = -1;		//wzmocnienie ujemne - kara
+		r = -1;		//wzmocnienie ujemne - kara
 	//	p = 0;		//przewidywanie porażki słabe
 	}
 	else
@@ -206,7 +194,18 @@ int stateMatrix::teachState(int status){
 		//	xbar[i] *= lambdav;
 		}
 	}
-	//printf("%d \n",move );
-	return (move);
+	return 0;
 
+}
+
+int stateMatrix::takeAction(int status)
+{
+	z = push(w[status]);
+	y = random();
+	if (y < z )  move = 1;
+	else
+		move = 0;
+
+
+	return move;
 }
