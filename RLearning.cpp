@@ -70,8 +70,8 @@ dReal porazka_ang		= 0.2094384; //20stopni
 
 //granice przedziałów
 dReal lim_x1	= 5;
-dReal lim_ang1	= 0.0174532; //1stopien
-dReal lim_ang2	= 0.1047192; //	6 stopni
+dReal lim_ang1	= 0.0174532 + 3.14; //1stopien
+dReal lim_ang2	= 0.1047192 + 3.14; //	6 stopni
 dReal lim_ang_div = 0.87266; //50st/sek
 
 
@@ -91,7 +91,8 @@ int stateMatrix::readState (dReal &x, dReal &v, dReal &ang, dReal &ang_div)
   
   //porażka
 	
-  
+  if (steps > 500)
+  {
   if (x < -porazka_x || x > porazka_x ||ang < -porazka_ang || ang > porazka_ang) 
 	{
 		fails++; 
@@ -100,7 +101,8 @@ int stateMatrix::readState (dReal &x, dReal &v, dReal &ang, dReal &ang_div)
 		return(-1);  
 	
 	}
-  
+  }
+
 
 	//limit prób lub kroków
 	if (fails > 1000 || steps_max > 10000) return(-2);
