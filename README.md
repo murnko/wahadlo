@@ -1,4 +1,4 @@
 wahadlo
 =======
 
-Odwrocone wahadlo RL
+Pierwsze próby systemu kar, "skomplikowany" stuff z literatury (wstępnie do wywalenia/analizy)
