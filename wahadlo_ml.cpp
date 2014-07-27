@@ -72,7 +72,7 @@ void restart(void);
 void createKulka()
 {
     dMass m1;
-    dReal x0 = -0.05, y0 = 0.5, z0 = 3.0, radius = 0.1; 
+    dReal x0 = -0.05, y0 = 0.5, z0 = 1.0, radius = 0.1; 
     dReal mass = 0.001; 
 
     kulka.body = dBodyCreate(world);   
@@ -112,7 +112,7 @@ void createLaczenie()
 	dMassSetZero(&m1); //deklaracja pustej zmiennej do przechowywania masy
 	dMassSetBoxTotal(&m1,mass,side[0],side[1],side[2]); //utworzenie rozkładu masy w określonej przestrzeni
 	dBodySetMass(laczenie.body,&m1); //przypisanie ww. rozkładu do obiektu faktycznego
-	dBodySetPosition(laczenie.body,-0.05,0.5,2.45); // ustawienie obiektu
+	dBodySetPosition(laczenie.body,-0.05,0.5,1.45); // ustawienie obiektu
 
 	laczenie.geom = dCreateBox(space,side[0],side[1],side[2]); //stworzenie geomu
 	dGeomSetBody(laczenie.geom,laczenie.body); //połączenie obiektu oraz "jego" geomu
@@ -219,11 +219,18 @@ static void simLoop (int pause)
 	keyControl();						// kontrola przycisków
 
 	act_state = statem.readState(x,v,a,w);
-	if (act_state == -1 )  restart(); //koniec próby
-	if (act_state == -2 ) { getchar(); statem.initState();  restart(); }
-	action = statem.teachState(act_state);
+
+	action = statem.takeAction(act_state); //wybór akcji
+
 	if (action == 0 ) dBodyAddRelForce(podstawa.body, 0, -30, 0); ; //ruch w lewo
 	if (action == 1 ) dBodyAddRelForce(podstawa.body, 0, 30, 0); ; //ruch w prawo
+
+	act_state = statem.readState(x,v,a,w);
+	if (act_state == -1 )  restart(); //porażka
+	if (act_state == -2 )  restart(); //limit kroków
+
+	statem.teachState(act_state);  //feedback
+	
 
 
 
