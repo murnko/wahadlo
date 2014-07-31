@@ -7,7 +7,7 @@
 
 
 
-static const	int state_count = 162; //liczba możliwych stanów
+static const	int state_count = 896; //liczba możliwych stanów
 static const	int steps_max	= 10000; //liczba maks. kroków w jednej próbie
 static const	int fails_max	= 1000;	//liczba maks. porażek
 static const	float lambdaw	= 0.9;  //współ. zapominania główny
@@ -49,29 +49,33 @@ float push(float s) {
 };
 
 
-
-
-
-
-
-
-
-
-//przelicznik wagowy
-
-
-
-
 //granica porażki
 dReal porazka_x			= 10;
 dReal porazka_v			= 1;
-dReal porazka_ang		= 0.2094384; //20stopni
+dReal porazka_ang		= 0.2094384; //12stopni  //chyba trzeba zamienic na granicę na dole, a 20st przeniesc do stanow "normalnych"
 
 
 //granice przedziałów
+//przesunięcie
 dReal lim_x1	= 5;
-dReal lim_ang1	= 0.0174532 + 3.14; //1stopien
-dReal lim_ang2	= 0.1047192 + 3.14; //	6 stopni
+
+//kąt
+dReal lim_ang1	= 3.1241393; // 179 st
+dReal lim_ang2  = 2.9670597; // 170   <
+dReal lim_ang3	= 3.0368728; //	174   
+dReal lim_ang4  = 2.7925268; // 160   <
+dReal lim_ang5  = 2.3561944; // 135   <
+dReal lim_ang6  = 1.5707963; // 90    <
+dReal lim_ang7  = 0.7853981; // 45    <
+dReal lim_ang8  = 0.3490658; // 20    <
+
+
+
+
+
+
+
+
 dReal lim_ang_div = 0.87266; //50st/sek
 
 
@@ -84,50 +88,54 @@ dReal lim_ang_div = 0.87266; //50st/sek
 int stateMatrix::readState (dReal &x, dReal &v, dReal &ang, dReal &ang_div)
 {
 
-{
-  state=0;
+	state =0;
   steps++;
-  //printf("%d \n",steps);
-  
-  //porażka
-	
-  if (steps > 500)
+  printf("%d \n",steps);	
+  if (steps > 1000)
   {
-  if (x < -porazka_x || x > porazka_x ||ang < -porazka_ang || ang > porazka_ang) 
-	{
+  //if (x < -porazka_x || x > porazka_x ||ang < -porazka_ang || ang > porazka_ang) 
+//	{
 		fails++; 
 		steps = 0; 
-	  
-		return(-1);  
-	
-	}
+		return -1;  
+//	}
   }
 
 
 	//limit prób lub kroków
-	if (fails > 1000 || steps_max > 10000) return(-2);
+  //if (fails > 1000 || steps_max > 10000) return(-2);
 
-  if (x < -lim_x1)  		       state = 0;
-  else if (x < 0.8)     	       state = 1;
-  else		    	               state = 2;
+  
 
-  if (v < -0.5) 		         state =+ 0;
-  else if (v < 0.5)                state += 3;
-  else 									state += 6;
+  if	  (ang < -lim_ang8)				state = 0;		//20
+  else if (ang < -lim_ang7)				state += 1;		//45
+  else if (ang < -lim_ang6)				state += 2;		//90
+  else if (ang < -lim_ang5)				state += 3;		//135
+  else if (ang < -lim_ang4) 			state += 4;	//160
+  else if (ang < -lim_ang2)				state += 5;	//170
+  else if (ang < 3.14) 					state += 6;//  0
+  else if (ang < lim_ang2) 				state += 7;	//170
+  else if (ang < lim_ang4)				state += 8;	//160
+  else if (ang < lim_ang5)				state += 9;		//135
+  else if (ang < lim_ang6)				state += 10;	//90
+  else if (ang < lim_ang7)    			state += 11;	//45
+  else if (ang < lim_ang8)				state += 12;	//20
+  else									state += 13;    //reszta
 
-  if	  (ang < -lim_ang2) 			state+= 0;//	 x|.|.|.|.|.
-  else if (ang < -lim_ang1)				state += 9;  //  .|x|.|.|.|.
-  else if (ang < 0) 					state += 18; //  .|.|x|.|.|.
-  else if (ang < lim_ang1) 				state += 27; //  .|.|.|x|.|.
-  else if (ang < lim_ang2)				state += 36; //  .|.|.|.|x|.
-  else	    							state += 45; //  .|.|.|.|.|x
+  if (x < -lim_x1)  		       state +=  14;
+  else if (x < 0.8)     	       state +=  28;
+  else		    	               state +=  42;
 
-  if (ang_div < -lim_ang_div) 	;
-  else if (ang_div < lim_ang_div)  state += 54;
-  else                                 state += 108;
+  if (v < -0.5) 					state =+ 56;
+  else if (v < 0.5)					state += 112;
+  else 								state += 168;
+
+  if (ang_div < -lim_ang_div)		state += 224;	
+  else if (ang_div < lim_ang_div)   state += 448;
+  else                              state += 672;
   
   return(state);
-}
+
 	
 }
 
