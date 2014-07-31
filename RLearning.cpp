@@ -20,7 +20,7 @@ static const	float beta		= 0.5;  //współ. uczenia pomocniczy
 	float e[state_count];
 	float xbar[state_count];
 
-int move, state;
+int move, state, works = 0;
 float x, oldp, q1, q2, q3, z, y;
 
 float random(void) {
@@ -87,18 +87,20 @@ dReal lim_ang_div = 0.87266; //50st/sek
 
 int stateMatrix::readState (dReal &x, dReal &v, dReal &ang, dReal &ang_div)
 {
-
+	
 	state =0;
-  steps++;
-  printf("%d \n",steps);	
-  if (steps > 1000)
+	steps++;
+	printf("%d \n",steps);	
+
+  if (ang < -lim_ang6 || ang > lim_ang6) works = 1;  //mały sukces odciąga karę (wstępnie zamiast rozdrabniania nagród)
+
+  if (steps > (1000 + 1000*works))
   {
-  //if (x < -porazka_x || x > porazka_x ||ang < -porazka_ang || ang > porazka_ang) 
-//	{
-		fails++; 
-		steps = 0; 
+  if (x < -porazka_x || x > porazka_x ||((ang > -lim_ang2 || ang < lim_ang2) && !works)  ) 
+	{ 
+		works = 0;
 		return -1;  
-//	}
+	}
   }
 
 
@@ -179,7 +181,8 @@ int stateMatrix::teachState(int status){
 	else
 	{
 		fail = 0;  
-		r = 0;			//wzmocnienie dodatnie - nagroda
+		r = 0;	
+			//wzmocnienie dodatnie - nagroda
 	//	p = v[status];	// przewidywanie porażki jako pomocniczy czynnik uczenia
 	}
 	rhat = r ;//+p - oldp;
