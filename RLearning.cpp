@@ -5,22 +5,22 @@
 #include <math.h>
 
 
-
-
-static const	int state_count = 896; //liczba możliwych stanów
+/*
+===============
+Stałe
+*/
+static const	int state_count = 896;	//liczba możliwych stanów
 static const	int steps_max	= 10000; //liczba maks. kroków w jednej próbie
 static const	int fails_max	= 1000;	//liczba maks. porażek
 static const	float lambdaw	= 0.9;  //współ. zapominania główny
-static const	float lambdav	= 0.8;  //współ. zapominania pomocniczy
 static const	float alpha		= 1000; //współ. uczenia główny 
-static const	float beta		= 0.5;  //współ. uczenia pomocniczy
+
 
 	float w[state_count];
-	float v[state_count];
 	float e[state_count];
 	float xbar[state_count];
 
-int move, state, works = 0;
+int move, state, works = 0, standing =  0;
 float x, oldp, q1, q2, q3, z, y;
 
 float random(void) {
@@ -59,7 +59,7 @@ dReal porazka_ang		= 0.2094384; //12stopni  //chyba trzeba zamienic na granicę 
 //przesunięcie
 dReal lim_x1	= 5;
 
-//kąt
+//kąty
 dReal lim_ang1	= 3.1241393; // 179 st
 dReal lim_ang2  = 2.9670597; // 170   <
 dReal lim_ang3	= 3.0368728; //	174   
@@ -90,22 +90,23 @@ int stateMatrix::readState (dReal &x, dReal &v, dReal &ang, dReal &ang_div)
 	
 	state =0;
 	steps++;
-	printf("%d \n",steps);	
+	printf("%d \n",steps);
 
+  if (ang < -lim_ang1 || ang > lim_ang1) standing = 1; //skoro już doszedł do tego jak wrzucić się na górę to niech teraz pilnuje, żeby nie spaść
   if (ang < -lim_ang6 || ang > lim_ang6) works = 1;  //mały sukces odciąga karę (wstępnie zamiast rozdrabniania nagród)
 
-  if (steps > (1000 + 1000*works))
+  if (standing && (( ang > -lim_ang4) && (ang < lim_ang4))) {standing = 0 ;return -1;} //spadło po osiągnięciu pionu
+
+
+  if ((x < -porazka_x *(1 + 2*standing))  || (x > porazka_x*(1 + 2*standing))) {works = 0; return -1;}  //wyjechało za daleko
+
+
+  if ( (steps > 1000))   //za długo próbuje coś osiągnąć bez rezultatów
   {
-  if (x < -porazka_x || x > porazka_x ||((ang > -lim_ang2 || ang < lim_ang2) && !works)  ) 
-	{ 
-		works = 0;
-		return -1;  
-	}
+	  if (!works && (ang > -lim_ang2 || ang < lim_ang2) ){ works = 0; return -1;}
   }
 
-
-	//limit prób lub kroków
-  //if (fails > 1000 || steps_max > 10000) return(-2);
+  if (works && !standing && (steps > 10000)) {works = 0;  return -1;   } //za długo próbuje mimo jakiś rezultatów
 
   
 
@@ -115,7 +116,7 @@ int stateMatrix::readState (dReal &x, dReal &v, dReal &ang, dReal &ang_div)
   else if (ang < -lim_ang5)				state += 3;		//135
   else if (ang < -lim_ang4) 			state += 4;	//160
   else if (ang < -lim_ang2)				state += 5;	//170
-  else if (ang < 3.14) 					state += 6;//  0
+  else if (ang < 3.14) 					state += 6; //  0
   else if (ang < lim_ang2) 				state += 7;	//170
   else if (ang < lim_ang4)				state += 8;	//160
   else if (ang < lim_ang5)				state += 9;		//135
@@ -146,7 +147,6 @@ void stateMatrix::initState(void){
 	for ( int i = 0; i++;state_count)
 	{
 		w[i] = 0;
-		v[i] = 0;
 		e[i] = 0;
 		xbar[i] = 0;
 	}
@@ -165,47 +165,36 @@ int stateMatrix::teachState(int status){
 
 	e[status] += (1 - lambdaw)*(move - 0.5) ;
 
-	//xbar[status] += (1 - lambdav);
-
-	//oldp = v[status];
-
 	if (status < 0 )   //sprawdza czy nie ma porażki
 	{
 
 		fail = 1;   //ustawia flagę porażki
 		fails++;	//zlicza porażkę
+		printf("\n     %d \n",fails);
 		steps = 0;	//reset kroków	
 		r = -1;		//wzmocnienie ujemne - kara
-	//	p = 0;		//przewidywanie porażki słabe
+
 	}
 	else
 	{
 		fail = 0;  
-		r = 0;	
-			//wzmocnienie dodatnie - nagroda
-	//	p = v[status];	// przewidywanie porażki jako pomocniczy czynnik uczenia
+		r = 0;
 	}
-	rhat = r ;//+p - oldp;
+
+	rhat = r ;	//+p - oldp;
 
 	for (int i = 0; i < state_count; i++)
 	{
-		w[i] += alpha*rhat*e[i]; 
-	//	v[i] += beta *rhat*xbar[i];
-
-	//	if (v[i] < -1)
-	//		v[i] = -1;
-
+		w[i] += alpha*rhat*e[i];
 
 		if (fail)
-		{
-			e[i] = 0;
-		//	xbar[i] = 0;
-		}
+			{
+				e[i] = 0;
+			}
 		else
-		{
-			e[i] *= lambdaw;
-		//	xbar[i] *= lambdav;
-		}
+			{
+				e[i] *= lambdaw;
+			}
 	}
 	return 0;
 
