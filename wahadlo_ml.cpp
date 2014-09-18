@@ -222,16 +222,16 @@ static void simLoop (int pause)
 
 	action = statem.takeAction(act_state); //wybór akcji
 
-	if (action == 0 ) dBodyAddRelForce(podstawa.body, 0, -30, 0); ; //ruch w lewo
-	if (action == 1 ) dBodyAddRelForce(podstawa.body, 0, 30, 0); ; //ruch w prawo
+	if (action == 0 ) dBodyAddRelForce(podstawa.body, 0, -80, 0); ; //ruch w lewo
+	if (action == 1 ) dBodyAddRelForce(podstawa.body, 0, 80, 0); ; //ruch w prawo
 
 	act_state = statem.readState(x,v,a,w);
 	if (act_state == -1 )  restart(); //porażka
-	if (act_state == -2 )  restart(); //limit kroków
+	//if (act_state == -2 )  restart(); //limit kroków
 
 	statem.teachState(act_state);  //feedback
 	
-
+	
 
 
     drawObject(kulka.geom,1.3,0,0);
