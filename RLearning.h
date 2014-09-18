@@ -8,12 +8,14 @@ class stateMatrix // klasa danych dynamicznych
 {
 private:
 	
-	float fails, steps, fail, r, p, rhat;
+	float r, p, rhat;
+	int fails, steps, fail;
 
 public:
 	void initState (void); //czysczenie pamięci stanów
 	int readState (dReal &x, dReal &v, dReal &a, dReal &ang_div); //odczytanie aktualnego stanu
 	int teachState(int status);
+	int takeAction(int status);
 
 };
 
@@ -22,4 +24,3 @@ public:
 
 
 #endif
-
